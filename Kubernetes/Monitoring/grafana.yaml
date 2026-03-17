@@ -16092,6 +16092,8 @@ spec:
               name: grafana-dashboard-scheduler
             - mountPath: /grafana-dashboard-definitions/0/workload-total
               name: grafana-dashboard-workload-total
+            - mountPath: /grafana-dashboard-definitions/0/cnpg
+              name: cnpg-grafana-dashboard
             - mountPath: /etc/grafana
               name: grafana-config
       nodeSelector:
@@ -16245,6 +16247,10 @@ spec:
             defaultMode: 420
             name: grafana-dashboard-workload-total
           name: grafana-dashboard-workload-total
+        - configMap:
+            defaultMode: 420
+            name: cnpg-grafana-dashboard
+          name: cnpg-grafana-dashboard
         - name: grafana-config
           secret:
             defaultMode: 420
