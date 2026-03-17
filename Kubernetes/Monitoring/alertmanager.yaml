@@ -49,14 +49,14 @@ spec:
       app.kubernetes.io/part-of: kube-prometheus
       app.kubernetes.io/version: 0.28.1
   portName: web
-  replicas: 3
+  replicas: 2
   resources:
     limits:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 50m
+      memory: 64Mi
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 25m
+      memory: 64Mi
   retention: 720h
   secrets: []
   securityContext:

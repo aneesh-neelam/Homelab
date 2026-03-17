@@ -117,11 +117,11 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 20m
-            memory: 32Mi
+            cpu: 10m
+            memory: 20Mi
           requests:
-            cpu: 20m
-            memory: 32Mi
+            cpu: 5m
+            memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -142,10 +142,10 @@ spec:
         name: module-configmap-reloader
         resources:
           limits:
-            cpu: 20m
+            cpu: 10m
             memory: 20Mi
           requests:
-            cpu: 20m
+            cpu: 5m
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false
@@ -172,10 +172,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 20m
+            cpu: 10m
             memory: 20Mi
           requests:
-            cpu: 20m
+            cpu: 5m
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false

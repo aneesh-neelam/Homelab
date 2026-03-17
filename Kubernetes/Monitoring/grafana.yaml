@@ -15941,6 +15941,23 @@ metadata:
   name: grafana-dashboard-workload-total
   namespace: monitoring
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: kube-prometheus
+  name: grafana-storage
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: csi-rawfile-default
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15990,10 +16007,10 @@ spec:
           resources:
             limits:
               cpu: 200m
-              memory: 256m
+              memory: 256Mi
             requests:
-              cpu: 200m
-              memory: 256m
+              cpu: 100m
+              memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -16086,8 +16103,9 @@ spec:
         runAsUser: 65534
       serviceAccountName: grafana
       volumes:
-        - emptyDir: {}
-          name: grafana-storage
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: grafana-storage
         - name: grafana-datasources
           secret:
             defaultMode: 420

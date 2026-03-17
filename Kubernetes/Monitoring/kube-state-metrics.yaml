@@ -196,10 +196,10 @@ spec:
         name: kube-state-metrics
         resources:
           limits:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
           requests:
-            cpu: 100m
+            cpu: 25m
             memory: 128Mi
         securityContext:
           allowPrivilegeEscalation: false
@@ -224,10 +224,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 20m
+            cpu: 10m
             memory: 20Mi
           requests:
-            cpu: 20m
+            cpu: 5m
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false
@@ -252,10 +252,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 20m
+            cpu: 10m
             memory: 20Mi
           requests:
-            cpu: 20m
+            cpu: 5m
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false

@@ -365,11 +365,11 @@ spec:
   replicas: 2
   resources:
     requests:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 100m
+      memory: 384Mi
     limits:
       cpu: 200m
-      memory: 256Mi
+      memory: 384Mi
   retention: 30d
   retentionSize: 5020MB
   ruleNamespaceSelector: {}

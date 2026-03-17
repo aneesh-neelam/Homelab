@@ -195,10 +195,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 200m
+            cpu: 100m
             memory: 100Mi
           requests:
-            cpu: 200m
+            cpu: 50m
             memory: 100Mi
         securityContext:
           allowPrivilegeEscalation: false
@@ -218,10 +218,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 20m
+            cpu: 10m
             memory: 20Mi
           requests:
-            cpu: 20m
+            cpu: 5m
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false
