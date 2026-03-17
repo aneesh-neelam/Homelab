@@ -1,0 +1,130 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.28.1
+  name: alertmanager-main
+  namespace: monitoring
+---
+apiVersion: v1
+data:
+  alertmanager.yaml: Imdsb2JhbCI6CiAgInJlc29sdmVfdGltZW91dCI6ICI1bSIKImluaGliaXRfcnVsZXMiOgotICJlcXVhbCI6CiAgLSAibmFtZXNwYWNlIgogIC0gImFsZXJ0bmFtZSIKICAic291cmNlX21hdGNoZXJzIjoKICAtICJzZXZlcml0eSA9IGNyaXRpY2FsIgogICJ0YXJnZXRfbWF0Y2hlcnMiOgogIC0gInNldmVyaXR5ID1+IHdhcm5pbmd8aW5mbyIKLSAiZXF1YWwiOgogIC0gIm5hbWVzcGFjZSIKICAtICJhbGVydG5hbWUiCiAgInNvdXJjZV9tYXRjaGVycyI6CiAgLSAic2V2ZXJpdHkgPSB3YXJuaW5nIgogICJ0YXJnZXRfbWF0Y2hlcnMiOgogIC0gInNldmVyaXR5ID0gaW5mbyIKLSAiZXF1YWwiOgogIC0gIm5hbWVzcGFjZSIKICAic291cmNlX21hdGNoZXJzIjoKICAtICJhbGVydG5hbWUgPSBJbmZvSW5oaWJpdG9yIgogICJ0YXJnZXRfbWF0Y2hlcnMiOgogIC0gInNldmVyaXR5ID0gaW5mbyIKInJlY2VpdmVycyI6Ci0gIm5hbWUiOiAiRGVmYXVsdCIKLSAibmFtZSI6ICJXYXRjaGRvZyIKLSAibmFtZSI6ICJDcml0aWNhbCIKLSAibmFtZSI6ICJudWxsIgoicm91dGUiOgogICJncm91cF9ieSI6CiAgLSAibmFtZXNwYWNlIgogICJncm91cF9pbnRlcnZhbCI6ICI1bSIKICAiZ3JvdXBfd2FpdCI6ICIzMHMiCiAgInJlY2VpdmVyIjogIkRlZmF1bHQiCiAgInJlcGVhdF9pbnRlcnZhbCI6ICIxMmgiCiAgInJvdXRlcyI6CiAgLSAibWF0Y2hlcnMiOgogICAgLSAiYWxlcnRuYW1lID0gV2F0Y2hkb2ciCiAgICAicmVjZWl2ZXIiOiAiV2F0Y2hkb2ciCiAgLSAibWF0Y2hlcnMiOgogICAgLSAiYWxlcnRuYW1lID0gSW5mb0luaGliaXRvciIKICAgICJyZWNlaXZlciI6ICJudWxsIgogIC0gIm1hdGNoZXJzIjoKICAgIC0gInNldmVyaXR5ID0gY3JpdGljYWwiCiAgICAicmVjZWl2ZXIiOiAiQ3JpdGljYWwi
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.28.1
+  name: alertmanager-main
+  namespace: monitoring
+type: Opaque
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  labels:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.28.1
+  name: main
+  namespace: monitoring
+spec:
+  image: quay.io/prometheus/alertmanager:v0.28.1
+  nodeSelector:
+    kubernetes.io/os: linux
+  podMetadata:
+    labels:
+      app.kubernetes.io/component: alert-router
+      app.kubernetes.io/instance: main
+      app.kubernetes.io/name: alertmanager
+      app.kubernetes.io/part-of: kube-prometheus
+      app.kubernetes.io/version: 0.28.1
+  portName: web
+  replicas: 3
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  retention: 720h
+  secrets: []
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+  serviceAccountName: alertmanager-main
+  storage:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: csi-rawfile-default
+  version: 0.28.1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.28.1
+  name: alertmanager-main
+  namespace: monitoring
+spec:
+  ports:
+  - name: web
+    nodePort: 30093
+    port: 9093
+    targetPort: 9093
+  - name: reloader-web
+    nodePort: 30880
+    port: 8080
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  type: NodePort
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.28.1
+  name: alertmanager-main
+  namespace: monitoring
+spec:
+  endpoints:
+  - interval: 30s
+    port: web
+  - interval: 30s
+    port: reloader-web
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: alert-router
+      app.kubernetes.io/instance: main
+      app.kubernetes.io/name: alertmanager
+      app.kubernetes.io/part-of: kube-prometheus

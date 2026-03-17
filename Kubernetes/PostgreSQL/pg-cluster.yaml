@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgresql
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+  namespace: postgresql
+spec:
+  instances: 2
+
+  postgresql:
+    parameters:
+      shared_buffers: "256MB"
+      max_connections: "100"
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "1"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+
+  storage:
+    size: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-cluster-rw-nodeport
+  namespace: postgresql
+spec:
+  type: NodePort
+  selector:
+    cnpg.io/cluster: pg-cluster
+    role: primary
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 30432
+      protocol: TCP
+      name: postgresql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-cluster-ro-nodeport
+  namespace: postgresql
+spec:
+  type: NodePort
+  selector:
+    cnpg.io/cluster: pg-cluster
+    role: replica
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 30433
+      protocol: TCP
+      name: postgresql
