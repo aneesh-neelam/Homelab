@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: rabbitmq-cluster
+  namespace: rabbitmq
+spec:
+  podMetricsEndpoints:
+    - port: prometheus
+      interval: 15s
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq-cluster
