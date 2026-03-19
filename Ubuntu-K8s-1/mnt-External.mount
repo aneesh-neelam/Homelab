@@ -1,0 +1,13 @@
+[Unit]
+Description=VMware Shared Folder - External
+After=open-vm-tools.service
+Requires=open-vm-tools.service
+
+[Mount]
+What=.host:/External
+Where=/mnt/External
+Type=fuse.vmhgfs-fuse
+Options=allow_other,umask=000,defaults
+
+[Install]
+WantedBy=multi-user.target
