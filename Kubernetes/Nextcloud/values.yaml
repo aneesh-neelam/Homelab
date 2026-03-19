@@ -1,6 +1,6 @@
 image:
   repository: nextcloud
-  tag: 31.0.5-apache
+  tag: 33.0.0-apache
 
 replicaCount: 1
 
@@ -36,6 +36,7 @@ nextcloud:
         'trusted_domains' => array(
           0 => 'macstation-ubuntu-1.local:31080',
           1 => 'nextcloud.local',
+          2 => 'nextcloud.nextcloud.svc.cluster.local:8080',
         ),
       );
   extraVolumes:
