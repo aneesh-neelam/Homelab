@@ -13691,20 +13691,22 @@ data:
     \          \"type\": \"prometheus\",\n                        \"uid\": \"$datasource\"\
     \n                    },\n                    \"expr\": \"rate(node_disk_read_bytes_total{job=\\\
     \"node-exporter\\\", instance=\\\"$instance\\\", cluster=\\\"$cluster\\\", device=~\\\
-    \"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)\\\"}[$__rate_interval])\"\
+    \"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+|disk.+)\\\"}[$__rate_interval])\"\
     ,\n                    \"intervalFactor\": 1,\n                    \"legendFormat\"\
     : \"{{device}} read\"\n                },\n                {\n               \
     \     \"datasource\": {\n                        \"type\": \"prometheus\",\n \
     \                       \"uid\": \"$datasource\"\n                    },\n   \
     \                 \"expr\": \"rate(node_disk_written_bytes_total{job=\\\"node-exporter\\\
-    \", instance=\\\"$instance\\\", cluster=\\\"$cluster\\\", device=~\\\"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)\\\
+    \", instance=\\\"$instance\\\", cluster=\\\"$cluster\\\", device=~\\\"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+|disk.+)\\\
     \"}[$__rate_interval])\",\n                    \"intervalFactor\": 1,\n      \
     \              \"legendFormat\": \"{{device}} written\"\n                },\n\
     \                {\n                    \"datasource\": {\n                  \
     \      \"type\": \"prometheus\",\n                        \"uid\": \"$datasource\"\
-    \n                    },\n                    \"expr\": \"rate(node_disk_io_time_seconds_total{job=\\\
+    \n                    },\n                    \"expr\": \"rate(node_disk_read_time_seconds_total{job=\\\
     \"node-exporter\\\", instance=\\\"$instance\\\", cluster=\\\"$cluster\\\", device=~\\\
-    \"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)\\\"}[$__rate_interval])\"\
+    \"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+|disk.+)\\\"}[$__rate_interval]) + rate(node_disk_write_time_seconds_total{job=\\\
+    \"node-exporter\\\", instance=\\\"$instance\\\", cluster=\\\"$cluster\\\", device=~\\\
+    \"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+|disk.+)\\\"}[$__rate_interval])\"\
     ,\n                    \"intervalFactor\": 1,\n                    \"legendFormat\"\
     : \"{{device}} io time\"\n                }\n            ],\n            \"title\"\
     : \"Disk I/O\",\n            \"type\": \"timeseries\"\n        },\n        {\n\

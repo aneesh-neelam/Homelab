@@ -2,6 +2,7 @@
 Description=VMware Shared Folder - aneeshneelam
 After=open-vm-tools.service
 Requires=open-vm-tools.service
+Before=snap.k8s.kubelet.service
 
 [Mount]
 What=.host:/aneeshneelam
