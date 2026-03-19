@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: nextcloud-metrics
+  namespace: nextcloud
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: nextcloud
+    app.kubernetes.io/name: nextcloud
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: metrics
+      app.kubernetes.io/instance: nextcloud
+      app.kubernetes.io/name: nextcloud
+  endpoints:
+    - port: http
+      interval: 30s
