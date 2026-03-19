@@ -1,0 +1,22 @@
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+dataStorage:
+  enabled: true
+  requestedSize: "1Gi"
+  accessModes:
+    - ReadWriteOnce
+
+valkeyConfig: |
+  maxmemory-policy allkeys-lru
+  tcp-keepalive 300
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true

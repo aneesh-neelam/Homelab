@@ -16094,6 +16094,10 @@ spec:
               name: grafana-dashboard-workload-total
             - mountPath: /grafana-dashboard-definitions/0/cnpg
               name: cnpg-grafana-dashboard
+            - mountPath: /grafana-dashboard-definitions/0/rabbitmq
+              name: rabbitmq-grafana-dashboard
+            - mountPath: /grafana-dashboard-definitions/0/valkey
+              name: valkey-grafana-dashboard
             - mountPath: /etc/grafana
               name: grafana-config
       nodeSelector:
@@ -16251,6 +16255,14 @@ spec:
             defaultMode: 420
             name: cnpg-grafana-dashboard
           name: cnpg-grafana-dashboard
+        - configMap:
+            defaultMode: 420
+            name: rabbitmq-grafana-dashboard
+          name: rabbitmq-grafana-dashboard
+        - configMap:
+            defaultMode: 420
+            name: valkey-grafana-dashboard
+          name: valkey-grafana-dashboard
         - name: grafana-config
           secret:
             defaultMode: 420
