@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pg-create-databases
+  namespace: postgresql
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-databases
+          image: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+          command: ["sh", "-c"]
+          args:
+            - |
+              psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'nextcloud'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE nextcloud OWNER nextcloud;"
+              psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'currency_exchange_rates'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE currency_exchange_rates OWNER currencyexchangeratessync;"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-cluster-superuser
+                  key: password

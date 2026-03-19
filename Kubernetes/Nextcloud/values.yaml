@@ -1,0 +1,129 @@
+image:
+  repository: nextcloud
+  tag: 31.0.5-apache
+
+replicaCount: 1
+
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "1Gi"
+    cpu: "2"
+
+nextcloud:
+  host: nextcloud.local
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-admin-credentials
+    usernameKey: username
+    passwordKey: password
+  configs:
+    custom.config.php: |-
+      <?php
+      $CONFIG = array(
+        'overwriteprotocol' => 'http',
+        'overwrite.cli.url' => 'http://macstation-ubuntu-1.local:31080',
+        'default_phone_region' => 'US',
+        'memcache.local' => '\\OC\\Memcache\\APCu',
+        'memcache.distributed' => '\\OC\\Memcache\\Redis',
+        'memcache.locking' => '\\OC\\Memcache\\Redis',
+        'redis' => array(
+          'host' => 'valkey.valkey.svc.cluster.local',
+          'port' => 6379,
+        ),
+        'trusted_domains' => array(
+          0 => 'macstation-ubuntu-1.local:31080',
+          1 => 'nextcloud.local',
+        ),
+      );
+  extraVolumes:
+    - name: shared-pictures
+      hostPath:
+        path: /mnt/Media/Personal Media/Pictures
+        type: DirectoryOrCreate
+    - name: shared-videos
+      hostPath:
+        path: /mnt/Media/Personal Media/Videos
+        type: DirectoryOrCreate
+    - name: shared-documents
+      hostPath:
+        path: /mnt/Media/Personal Media/Documents
+        type: DirectoryOrCreate
+    - name: personal-nextcloud
+      hostPath:
+        path: /mnt/Media/Personal Media/Nextcloud
+        type: DirectoryOrCreate
+  extraVolumeMounts:
+    - name: shared-pictures
+      mountPath: /mnt/Shared/Pictures
+    - name: shared-videos
+      mountPath: /mnt/Shared/Videos
+    - name: shared-documents
+      mountPath: /mnt/Shared/Documents
+    - name: personal-nextcloud
+      mountPath: /mnt/Personal
+
+internalDatabase:
+  enabled: false
+
+externalDatabase:
+  enabled: true
+  type: postgresql
+  host: pg-cluster-rw.postgresql.svc.cluster.local:5432
+  existingSecret:
+    enabled: true
+    secretName: nextcloud-db-credentials
+    usernameKey: username
+    passwordKey: password
+    databaseKey: database
+
+redis:
+  enabled: false
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  nextcloudData:
+    enabled: false
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 31080
+
+metrics:
+  enabled: true
+  https: false
+  serviceMonitor:
+    enabled: true
+    namespace: nextcloud
+
+cronjob:
+  enabled: true
+
+phpClientHttpsFix:
+  enabled: false

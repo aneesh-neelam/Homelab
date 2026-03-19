@@ -1,0 +1,140 @@
+[
+    {
+        "mount_id": 1,
+        "mount_point": "/Shared Pictures",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Shared/Pictures"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 2,
+        "mount_point": "/Shared Videos",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Shared/Videos"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 3,
+        "mount_point": "/Shared Documents",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Shared/Documents"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 4,
+        "mount_point": "/Personal Pictures",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Personal/Aneesh/Pictures"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [
+            "aneeshneelam"
+        ],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 5,
+        "mount_point": "/Personal Videos",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Personal/Aneesh/Videos"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [
+            "aneeshneelam"
+        ],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 6,
+        "mount_point": "/Personal Documents",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Personal/Aneesh/Documents"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [
+            "aneeshneelam"
+        ],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 7,
+        "mount_point": "/Personal Pictures",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Personal/Arushi/Pictures"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [
+            "arushipurohit12"
+        ],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 8,
+        "mount_point": "/Personal Videos",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Personal/Arushi/Videos"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [
+            "arushipurohit12"
+        ],
+        "applicable_groups": []
+    },
+    {
+        "mount_id": 9,
+        "mount_point": "/Personal Documents",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "/mnt/Personal/Arushi/Documents"
+        },
+        "options": {
+            "enable_sharing": false
+        },
+        "applicable_users": [
+            "arushipurohit12"
+        ],
+        "applicable_groups": []
+    }
+]

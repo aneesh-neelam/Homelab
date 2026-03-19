@@ -16098,6 +16098,8 @@ spec:
               name: rabbitmq-grafana-dashboard
             - mountPath: /grafana-dashboard-definitions/0/valkey
               name: valkey-grafana-dashboard
+            - mountPath: /grafana-dashboard-definitions/0/nextcloud
+              name: nextcloud-grafana-dashboard
             - mountPath: /etc/grafana
               name: grafana-config
       nodeSelector:
@@ -16263,6 +16265,10 @@ spec:
             defaultMode: 420
             name: valkey-grafana-dashboard
           name: valkey-grafana-dashboard
+        - configMap:
+            defaultMode: 420
+            name: nextcloud-grafana-dashboard
+          name: nextcloud-grafana-dashboard
         - name: grafana-config
           secret:
             defaultMode: 420

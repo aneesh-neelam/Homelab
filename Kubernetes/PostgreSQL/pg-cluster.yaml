@@ -10,6 +10,7 @@ metadata:
   namespace: postgresql
 spec:
   instances: 2
+  enableSuperuserAccess: true
 
   postgresql:
     parameters:
@@ -28,6 +29,23 @@ spec:
     initdb:
       database: app
       owner: app
+
+  managed:
+    roles:
+      - name: nextcloud
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: nextcloud-db-credentials
+      - name: currencyexchangeratessync
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: currencyexchangeratessync-db-credentials
 
   storage:
     size: 10Gi
