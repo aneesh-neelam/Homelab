@@ -369,6 +369,8 @@ spec:
         namespace: monitoring
         port: web
   enableFeatures: []
+  tsdb:
+    outOfOrderTimeWindow: 6h
   evaluationInterval: 30s
   externalLabels: {}
   image: quay.io/prometheus/prometheus:v3.5.0
