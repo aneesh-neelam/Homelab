@@ -46,6 +46,13 @@ spec:
         superuser: false
         passwordSecret:
           name: currencyexchangeratessync-db-credentials
+      - name: openwebui
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: openwebui-db-credentials
 
   storage:
     size: 10Gi

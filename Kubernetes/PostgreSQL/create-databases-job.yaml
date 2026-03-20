@@ -16,6 +16,8 @@ spec:
             - |
               psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'nextcloud'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE nextcloud OWNER nextcloud;"
               psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'currency_exchange_rates'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE currency_exchange_rates OWNER currencyexchangeratessync;"
+              psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'openwebui'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE openwebui OWNER openwebui;"
+              psql -h pg-cluster-rw -U postgres -d openwebui -c "CREATE EXTENSION IF NOT EXISTS vector;"
           env:
             - name: PGPASSWORD
               valueFrom:
