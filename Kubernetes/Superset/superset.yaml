@@ -50,11 +50,46 @@ data:
         "CACHE_REDIS_URL": "redis://valkey.valkey.svc.cluster.local:6379/2",
     }
 
+    from superset.stats_logger import StatsdStatsLogger
+    STATS_LOGGER = StatsdStatsLogger(host="localhost", port=9125, prefix="superset")
+
     class CeleryConfig:
         broker_url = "redis://valkey.valkey.svc.cluster.local:6379/3"
         result_backend = "redis://valkey.valkey.svc.cluster.local:6379/3"
 
     CELERY_CONFIG = CeleryConfig
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: superset-statsd-mapping
+  namespace: superset
+data:
+  statsd-mapping.yaml: |
+    mappings:
+      - match: "superset.queries.*.*"
+        name: "superset_queries"
+        labels:
+          database: "$1"
+          status: "$2"
+      - match: "superset.query_duration.*"
+        name: "superset_query_duration_seconds"
+        labels:
+          database: "$1"
+        timer_type: "histogram"
+      - match: "superset.dashboard.*.request"
+        name: "superset_dashboard_requests_total"
+        labels:
+          dashboard: "$1"
+      - match: "superset.*.count"
+        name: "superset_${1}_count"
+      - match: "superset.*.duration"
+        name: "superset_${1}_duration_seconds"
+        timer_type: "histogram"
+      - match: "superset.*.*"
+        name: "superset_${1}_${2}"
+      - match: "superset.*"
+        name: "superset_$1"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -92,7 +127,7 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              pip install --target=/tmp/pip-packages psycopg2-binary &&
+              pip install --target=/tmp/pip-packages psycopg2-binary statsd &&
               export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH &&
               superset db upgrade &&
               superset init &&
@@ -128,7 +163,7 @@ spec:
         - name: superset
           image: apache/superset:4.1.2
           command: ["sh", "-c"]
-          args: ["pip install --target=/tmp/pip-packages psycopg2-binary && export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH && gunicorn -w 2 -k gthread --threads 4 --timeout 120 -b 0.0.0.0:8088 'superset.app:create_app()'"]
+          args: ["pip install --target=/tmp/pip-packages psycopg2-binary statsd && export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH && gunicorn -w 2 -k gthread --threads 4 --timeout 120 -b 0.0.0.0:8088 'superset.app:create_app()'"]
           ports:
             - containerPort: 8088
               name: http
@@ -183,7 +218,7 @@ spec:
         - name: superset-celery-worker
           image: apache/superset:4.1.2
           command: ["sh", "-c"]
-          args: ["pip install --target=/tmp/pip-packages psycopg2-binary && export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH && celery --app=superset.tasks.celery_app:app worker --pool=prefork --concurrency=2"]
+          args: ["pip install --target=/tmp/pip-packages psycopg2-binary statsd && export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH && celery --app=superset.tasks.celery_app:app worker --pool=prefork --concurrency=2"]
           env:
             - name: SUPERSET_DB_USER
               valueFrom:
@@ -215,10 +250,36 @@ spec:
             limits:
               memory: "384Mi"
               cpu: "1"
+        - name: statsd-exporter
+          image: prom/statsd-exporter:v0.28.0
+          args:
+            - "--statsd.listen-udp=:9125"
+            - "--web.listen-address=:9102"
+            - "--statsd.mapping-config=/etc/statsd-mapping/statsd-mapping.yaml"
+          ports:
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
+            - containerPort: 9125
+              name: statsd-udp
+              protocol: UDP
+          volumeMounts:
+            - name: statsd-mapping
+              mountPath: /etc/statsd-mapping
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
       volumes:
         - name: config
           configMap:
             name: superset-config
+        - name: statsd-mapping
+          configMap:
+            name: superset-statsd-mapping
         - name: data
           persistentVolumeClaim:
             claimName: superset-data
@@ -238,6 +299,24 @@ spec:
     - name: http
       port: 8088
       targetPort: 8088
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset-metrics
+  namespace: superset
+  labels:
+    app.kubernetes.io/name: superset
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: superset
+  ports:
+    - name: metrics
+      port: 9102
+      targetPort: 9102
       protocol: TCP
 ---
 apiVersion: v1

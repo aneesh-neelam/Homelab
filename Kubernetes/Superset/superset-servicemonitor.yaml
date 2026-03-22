@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: superset-metrics
+  namespace: superset
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: superset
+    app.kubernetes.io/name: superset
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: superset
+      app.kubernetes.io/component: metrics
+  endpoints:
+    - port: metrics
+      interval: 30s
