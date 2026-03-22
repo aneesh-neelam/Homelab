@@ -40,8 +40,15 @@ spec:
             - containerPort: 5000
               name: http
               protocol: TCP
+            - containerPort: 5001
+              name: metrics
+              protocol: TCP
           env:
             - name: REGISTRY_STORAGE_DELETE_ENABLED
+              value: "true"
+            - name: REGISTRY_HTTP_DEBUG_ADDR
+              value: ":5001"
+            - name: REGISTRY_HTTP_DEBUG_PROMETHEUS_ENABLED
               value: "true"
           volumeMounts:
             - name: data
@@ -89,6 +96,24 @@ spec:
     - name: http
       port: 5000
       targetPort: 5000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: container-registry-metrics
+  namespace: container-registry
+  labels:
+    app.kubernetes.io/name: container-registry
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: container-registry
+  ports:
+    - name: metrics
+      port: 5001
+      targetPort: 5001
       protocol: TCP
 ---
 apiVersion: batch/v1
