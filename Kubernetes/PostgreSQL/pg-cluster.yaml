@@ -53,6 +53,20 @@ spec:
         superuser: false
         passwordSecret:
           name: openwebui-db-credentials
+      - name: superset
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: superset-db-credentials
+      - name: grafana
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: grafana-db-credentials
 
   storage:
     size: 10Gi
