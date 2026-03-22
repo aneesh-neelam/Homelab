@@ -110,11 +110,31 @@ kubectl -n container-registry exec deploy/container-registry -- \
   bin/registry garbage-collect /etc/docker/registry/config.yml
 ```
 
+## Monitoring
+
+Prometheus metrics are exposed natively via the registry's debug endpoint on port 5001.
+
+### Deploy monitoring resources
+
+```bash
+kubectl apply -f container-registry-prometheus-rbac.yaml
+kubectl apply -f container-registry-servicemonitor.yaml
+```
+
+The Grafana dashboard (`container-registry-grafana-dashboard.json`) is provisioned as a ConfigMap in the `monitoring` namespace via `grafana.yaml`. It includes panels for:
+
+- Registry uptime status
+- HTTP request rates by handler and status code
+- Request latency (p50/p99) by handler
+- Storage action rates and latency
+- Blob upload/download byte rates and counts
+
 ## Services
 
 | Service | Port | NodePort |
 |---------|------|----------|
 | Container Registry | 5000 | 30500 |
+| Container Registry Metrics | 5001 | — |
 
 ## Storage
 

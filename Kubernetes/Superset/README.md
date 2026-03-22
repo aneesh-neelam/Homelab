@@ -82,11 +82,32 @@ The following read-only PostgreSQL connections are provisioned automatically by 
 | PostgreSQL - openwebui | openwebui | pg-cluster-ro:5432 |
 | PostgreSQL - superset | superset | pg-cluster-ro:5432 |
 
+## Monitoring
+
+Superset emits StatsD metrics which are converted to Prometheus format by a `statsd-exporter` sidecar container (prom/statsd-exporter). The sidecar receives StatsD UDP on port 9125 and exposes Prometheus metrics on port 9102.
+
+### Deploy monitoring resources
+
+```bash
+kubectl apply -f superset-prometheus-rbac.yaml
+kubectl apply -f superset-servicemonitor.yaml
+```
+
+The Grafana dashboard (`superset-grafana-dashboard.json`) is provisioned as a ConfigMap in the `monitoring` namespace via `grafana.yaml`. It includes panels for:
+
+- Superset uptime status
+- Request count and duration rates
+- Query rates and duration by database
+- StatsD exporter event rates and mapped vs unmapped metrics
+
+The StatsD metric mapping rules are defined in the `superset-statsd-mapping` ConfigMap (`statsd-mapping.yaml` in `superset.yaml`).
+
 ## Services
 
 | Service | Port | NodePort |
 |---------|------|----------|
 | Superset | 8088 | 30088 |
+| Superset Metrics (statsd-exporter) | 9102 | — |
 
 ## External Dependencies
 
