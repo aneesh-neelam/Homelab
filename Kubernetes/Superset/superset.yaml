@@ -1,0 +1,259 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: superset
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: superset-config
+  namespace: superset
+data:
+  superset_config.py: |
+    import os
+
+    SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY")
+
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql+psycopg2://{os.environ['SUPERSET_DB_USER']}:{os.environ['SUPERSET_DB_PASSWORD']}"
+        f"@pg-cluster-rw.postgresql.svc.cluster.local:5432/superset"
+    )
+
+    # Connect to all PostgreSQL databases via the superuser connection
+    # Users can add database connections through the Superset UI
+
+    CACHE_CONFIG = {
+        "CACHE_TYPE": "RedisCache",
+        "CACHE_DEFAULT_TIMEOUT": 300,
+        "CACHE_KEY_PREFIX": "superset_",
+        "CACHE_REDIS_URL": "redis://valkey.valkey.svc.cluster.local:6379/2",
+    }
+
+    DATA_CACHE_CONFIG = {
+        "CACHE_TYPE": "RedisCache",
+        "CACHE_DEFAULT_TIMEOUT": 300,
+        "CACHE_KEY_PREFIX": "superset_data_",
+        "CACHE_REDIS_URL": "redis://valkey.valkey.svc.cluster.local:6379/2",
+    }
+
+    FILTER_STATE_CACHE_CONFIG = {
+        "CACHE_TYPE": "RedisCache",
+        "CACHE_DEFAULT_TIMEOUT": 300,
+        "CACHE_KEY_PREFIX": "superset_filter_",
+        "CACHE_REDIS_URL": "redis://valkey.valkey.svc.cluster.local:6379/2",
+    }
+
+    EXPLORE_FORM_DATA_CACHE_CONFIG = {
+        "CACHE_TYPE": "RedisCache",
+        "CACHE_DEFAULT_TIMEOUT": 300,
+        "CACHE_KEY_PREFIX": "superset_explore_",
+        "CACHE_REDIS_URL": "redis://valkey.valkey.svc.cluster.local:6379/2",
+    }
+
+    class CeleryConfig:
+        broker_url = "redis://valkey.valkey.svc.cluster.local:6379/3"
+        result_backend = "redis://valkey.valkey.svc.cluster.local:6379/3"
+
+    CELERY_CONFIG = CeleryConfig
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: superset-data
+  namespace: superset
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: csi-rawfile-default
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset
+  namespace: superset
+  labels:
+    app.kubernetes.io/name: superset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: superset
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: superset
+    spec:
+      initContainers:
+        - name: superset-init
+          image: apache/superset:4.1.2
+          command: ["sh", "-c"]
+          args:
+            - |
+              pip install --target=/tmp/pip-packages psycopg2-binary &&
+              export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH &&
+              superset db upgrade &&
+              superset init &&
+              superset set-database-uri -d "PostgreSQL - nextcloud" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/nextcloud" &&
+              superset set-database-uri -d "PostgreSQL - currency_exchange_rates" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/currency_exchange_rates" &&
+              superset set-database-uri -d "PostgreSQL - openwebui" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/openwebui" &&
+              superset set-database-uri -d "PostgreSQL - superset" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/superset"
+          env:
+            - name: SUPERSET_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: superset-db-credentials
+                  key: username
+            - name: SUPERSET_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: superset-db-credentials
+                  key: password
+            - name: SUPERSET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret-key
+                  key: secret-key
+            - name: SUPERSET_CONFIG_PATH
+              value: /app/superset_config.py
+          volumeMounts:
+            - name: config
+              mountPath: /app/superset_config.py
+              subPath: superset_config.py
+            - name: data
+              mountPath: /app/superset_home
+      containers:
+        - name: superset
+          image: apache/superset:4.1.2
+          command: ["sh", "-c"]
+          args: ["pip install --target=/tmp/pip-packages psycopg2-binary && export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH && gunicorn -w 2 -k gthread --threads 4 --timeout 120 -b 0.0.0.0:8088 'superset.app:create_app()'"]
+          ports:
+            - containerPort: 8088
+              name: http
+              protocol: TCP
+          env:
+            - name: SUPERSET_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: superset-db-credentials
+                  key: username
+            - name: SUPERSET_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: superset-db-credentials
+                  key: password
+            - name: SUPERSET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret-key
+                  key: secret-key
+            - name: SUPERSET_CONFIG_PATH
+              value: /app/superset_config.py
+          volumeMounts:
+            - name: config
+              mountPath: /app/superset_config.py
+              subPath: superset_config.py
+            - name: data
+              mountPath: /app/superset_home
+          resources:
+            requests:
+              memory: "768Mi"
+              cpu: "500m"
+            limits:
+              memory: "768Mi"
+              cpu: "2"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+        - name: superset-celery-worker
+          image: apache/superset:4.1.2
+          command: ["sh", "-c"]
+          args: ["pip install --target=/tmp/pip-packages psycopg2-binary && export PYTHONPATH=/tmp/pip-packages:$PYTHONPATH && celery --app=superset.tasks.celery_app:app worker --pool=prefork --concurrency=2"]
+          env:
+            - name: SUPERSET_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: superset-db-credentials
+                  key: username
+            - name: SUPERSET_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: superset-db-credentials
+                  key: password
+            - name: SUPERSET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret-key
+                  key: secret-key
+            - name: SUPERSET_CONFIG_PATH
+              value: /app/superset_config.py
+          volumeMounts:
+            - name: config
+              mountPath: /app/superset_config.py
+              subPath: superset_config.py
+            - name: data
+              mountPath: /app/superset_home
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "250m"
+            limits:
+              memory: "384Mi"
+              cpu: "1"
+      volumes:
+        - name: config
+          configMap:
+            name: superset-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: superset-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset
+  namespace: superset
+  labels:
+    app.kubernetes.io/name: superset
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: superset
+  ports:
+    - name: http
+      port: 8088
+      targetPort: 8088
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset-nodeport
+  namespace: superset
+  labels:
+    app.kubernetes.io/name: superset
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: superset
+  ports:
+    - name: http
+      port: 8088
+      targetPort: 8088
+      nodePort: 30088
+      protocol: TCP
