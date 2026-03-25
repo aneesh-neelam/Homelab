@@ -1,7 +1,7 @@
 [Unit]
 Description=VMware Shared Folder - aneeshneelam
-After=open-vm-tools.service
-Requires=open-vm-tools.service
+After=systemd-modules-load.service
+Requires=systemd-modules-load.service
 Before=snap.k8s.kubelet.service
 
 [Mount]
