@@ -54,7 +54,7 @@ nextcloud:
         type: DirectoryOrCreate
     - name: personal-nextcloud
       hostPath:
-        path: /mnt/Media/Personal Media/Nextcloud
+        path: /mnt/Media/Personal Media/Users
         type: DirectoryOrCreate
   extraVolumeMounts:
     - name: shared-pictures
