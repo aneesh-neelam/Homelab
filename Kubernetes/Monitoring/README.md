@@ -52,7 +52,7 @@ kubectl apply -f prometheus-adapter.yaml
 
 - **Retention:** 30 days or 5020MB (whichever comes first)
 - **Scrape interval:** 30s
-- **Storage:** 5Gi PVC (`csi-rawfile-default`)
+- **Storage:** 5Gi PVC (`local-path`)
 - **Discovery:** Watches all ServiceMonitors and PodMonitors cluster-wide
 
 ## Grafana

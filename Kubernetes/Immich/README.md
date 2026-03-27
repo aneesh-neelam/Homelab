@@ -172,7 +172,7 @@ Node: /mnt/Media/Personal Media/
 ├── Pictures/                    <- Shared Pictures
 ├── Videos/                      <- Shared Videos
 ├── Documents/                   <- Shared Documents (Nextcloud only)
-└── Nextcloud/
+└── Users/
     ├── Aneesh/
     │   ├── Pictures/            <- Personal Pictures (aneeshneelam)
     │   └── Videos/              <- Personal Videos (aneeshneelam)
@@ -191,10 +191,10 @@ Node: /mnt/Media/Personal Media/
 
 ## Resource Allocation
 
-| Container | CPU Request | CPU Limit | Memory (Request = Limit) |
-|-----------|------------|-----------|--------------------------|
-| Immich Server | 500m | 2 | 2Gi |
-| Immich Machine Learning | 500m | 2 | 4Gi |
+| Container | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|------------|-----------|----------------|--------------|
+| Immich Server | 500m | 2 | 1Gi | 1Gi |
+| Immich Machine Learning | 500m | 2 | 2Gi | 4Gi |
 
 The ML container needs more memory as it loads models for face recognition and smart search. It spikes during the initial library scan but is mostly idle afterwards.
 

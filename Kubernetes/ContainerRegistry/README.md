@@ -140,4 +140,4 @@ The Grafana dashboard (`container-registry-grafana-dashboard.json`) is provision
 
 | PVC | Size | Storage Class |
 |-----|------|---------------|
-| container-registry-data | 50Gi | csi-rawfile-default |
+| container-registry-data | 50Gi | local-path |

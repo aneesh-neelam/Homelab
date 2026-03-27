@@ -27,4 +27,5 @@ spec:
       disk_free_limit.absolute = 850MiB
 
   persistence:
+    storageClassName: local-path
     storage: 1Gi

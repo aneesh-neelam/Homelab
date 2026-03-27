@@ -86,6 +86,8 @@ redis:
 persistence:
   enabled: true
   accessMode: ReadWriteOnce
+  storageClass: local-path
+  existingClaim: nextcloud-nextcloud
   size: 10Gi
   nextcloudData:
     enabled: false

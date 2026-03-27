@@ -46,9 +46,9 @@ kubectl apply -f ../Monitoring/grafana.yaml
 
 | Parameter | Value |
 |-----------|-------|
-| Memory Policy | `allkeys-lru` |
+| Memory Policy | `noeviction` |
 | TCP Keep-Alive | 300s |
-| Storage | 1Gi PVC (`csi-rawfile-default`) |
+| Storage | 1Gi PVC (`local-path`) |
 | Memory | 512Mi (request = limit) |
 | CPU | 100m request, 500m limit |
 

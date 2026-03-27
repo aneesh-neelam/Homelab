@@ -11,18 +11,21 @@ metadata:
 spec:
   instances: 2
   enableSuperuserAccess: true
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.3-1.1.1
 
   postgresql:
     parameters:
       shared_buffers: "256MB"
       max_connections: "100"
+    shared_preload_libraries:
+      - "vchord.so"
 
   resources:
     requests:
       memory: "512Mi"
       cpu: "500m"
     limits:
-      memory: "512Mi"
+      memory: "2Gi"
       cpu: "1"
 
   bootstrap:
@@ -67,8 +70,16 @@ spec:
         superuser: false
         passwordSecret:
           name: grafana-db-credentials
+      - name: immich
+        ensure: present
+        login: true
+        createdb: false
+        superuser: false
+        passwordSecret:
+          name: immich-db-credentials
 
   storage:
+    storageClass: local-path
     size: 10Gi
 ---
 apiVersion: v1

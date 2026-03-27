@@ -19,8 +19,12 @@ spec:
               psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'openwebui'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE openwebui OWNER openwebui;"
               psql -h pg-cluster-rw -U postgres -d openwebui -c "CREATE EXTENSION IF NOT EXISTS vector;"
               psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'superset'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE superset OWNER superset;"
-              for role in superset grafana; do for db in nextcloud currency_exchange_rates openwebui superset; do psql -h pg-cluster-rw -U postgres -d "$db" -c "GRANT CONNECT ON DATABASE $db TO $role;"; done; done
-              for role in superset grafana; do for db in nextcloud currency_exchange_rates openwebui superset; do psql -h pg-cluster-rw -U postgres -d "$db" -c "GRANT USAGE ON SCHEMA public TO $role; GRANT SELECT ON ALL TABLES IN SCHEMA public TO $role; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO $role;"; done; done
+              psql -h pg-cluster-rw -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'immich'" | grep -q 1 || psql -h pg-cluster-rw -U postgres -c "CREATE DATABASE immich OWNER immich;"
+              psql -h pg-cluster-rw -U postgres -d immich -c "CREATE EXTENSION IF NOT EXISTS vchord CASCADE;"
+              psql -h pg-cluster-rw -U postgres -d immich -c "CREATE EXTENSION IF NOT EXISTS cube;"
+              psql -h pg-cluster-rw -U postgres -d immich -c "CREATE EXTENSION IF NOT EXISTS earthdistance;"
+              for role in superset grafana; do for db in nextcloud currency_exchange_rates openwebui superset immich; do psql -h pg-cluster-rw -U postgres -d "$db" -c "GRANT CONNECT ON DATABASE $db TO $role;"; done; done
+              for role in superset grafana; do for db in nextcloud currency_exchange_rates openwebui superset immich; do psql -h pg-cluster-rw -U postgres -d "$db" -c "GRANT USAGE ON SCHEMA public TO $role; GRANT SELECT ON ALL TABLES IN SCHEMA public TO $role; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO $role;"; done; done
           env:
             - name: PGPASSWORD
               valueFrom:

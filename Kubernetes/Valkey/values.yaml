@@ -8,12 +8,13 @@ resources:
 
 dataStorage:
   enabled: true
+  className: local-path
   requestedSize: "1Gi"
   accessModes:
     - ReadWriteOnce
 
 valkeyConfig: |
-  maxmemory-policy allkeys-lru
+  maxmemory-policy noeviction
   tcp-keepalive 300
 
 metrics:

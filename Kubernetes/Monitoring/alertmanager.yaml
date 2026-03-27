@@ -70,7 +70,7 @@ spec:
         resources:
           requests:
             storage: 1Gi
-        storageClassName: csi-rawfile-default
+        storageClassName: local-path
   version: 0.28.1
 ---
 apiVersion: v1
