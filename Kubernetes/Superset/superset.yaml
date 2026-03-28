@@ -134,7 +134,8 @@ spec:
               superset set-database-uri -d "PostgreSQL - nextcloud" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/nextcloud" &&
               superset set-database-uri -d "PostgreSQL - currency_exchange_rates" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/currency_exchange_rates" &&
               superset set-database-uri -d "PostgreSQL - openwebui" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/openwebui" &&
-              superset set-database-uri -d "PostgreSQL - superset" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/superset"
+              superset set-database-uri -d "PostgreSQL - superset" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/superset" &&
+              superset set-database-uri -d "PostgreSQL - immich" -u "postgresql+psycopg2://${SUPERSET_DB_USER}:${SUPERSET_DB_PASSWORD}@pg-cluster-ro.postgresql.svc.cluster.local:5432/immich"
           env:
             - name: SUPERSET_DB_USER
               valueFrom:
