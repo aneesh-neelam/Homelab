@@ -48,7 +48,17 @@ spec:
             - containerPort: 2283
               name: http
               protocol: TCP
+            - containerPort: 8081
+              name: metrics-api
+              protocol: TCP
+            - containerPort: 8082
+              name: metrics-ms
+              protocol: TCP
           env:
+            - name: IMMICH_METRICS
+              value: "true"
+            - name: IMMICH_TELEMETRY_INCLUDE
+              value: "all"
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -221,3 +231,45 @@ spec:
       targetPort: 2283
       nodePort: 31283
       protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-server-metrics
+  namespace: immich
+  labels:
+    app.kubernetes.io/name: immich-server
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: immich-server
+  ports:
+    - name: metrics-api
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
+    - name: metrics-ms
+      port: 8082
+      targetPort: 8082
+      protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: immich-metrics
+  namespace: immich
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: immich
+    app.kubernetes.io/name: immich-server
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: immich-server
+      app.kubernetes.io/component: metrics
+  endpoints:
+    - port: metrics-api
+      interval: 30s
+    - port: metrics-ms
+      interval: 30s
