@@ -39,6 +39,14 @@ nextcloud:
           2 => 'nextcloud.nextcloud.svc.cluster.local:8080',
         ),
       );
+  hooks:
+    before-starting: |-
+      #!/bin/bash
+      CONFIG_FILE="/var/www/html/config/config.php"
+      if [ -f "$CONFIG_FILE" ] && [ -n "$POSTGRES_PASSWORD" ]; then
+        sed -i "s|'dbpassword' => '.*'|'dbpassword' => '$POSTGRES_PASSWORD'|" "$CONFIG_FILE"
+        echo "Synced dbpassword from environment variable"
+      fi
   extraVolumes:
     - name: shared-pictures
       hostPath:

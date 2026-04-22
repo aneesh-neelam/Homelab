@@ -34,6 +34,18 @@ systemctl status mnt-aneeshneelam.mount mnt-External.mount mnt-Media.mount
 ls /mnt/aneeshneelam /mnt/External /mnt/Media
 ```
 
+## Post-Bootstrap Cluster Configuration
+
+After bootstrapping the cluster, apply these tweaks:
+
+### CoreDNS HPA
+
+Scale the CoreDNS HPA minimum replicas to 3:
+
+```bash
+kubectl -n kube-system patch hpa ck-dns-coredns --patch '{"spec":{"minReplicas":3}}'
+```
+
 ## Usage
 
 Services that use these mounts:

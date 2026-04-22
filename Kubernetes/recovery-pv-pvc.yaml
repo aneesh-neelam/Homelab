@@ -1,0 +1,746 @@
+# Recovery manifests: rebind existing on-disk PV data to the new cluster
+# Apply namespaces first, then this file
+
+# =============================================================================
+# NAMESPACES
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgresql
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: immich
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nextcloud
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: open-webui
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: superset
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: container-registry
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rabbitmq
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: valkey
+---
+# =============================================================================
+# POSTGRESQL (CNPG operator-managed PVCs)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-pg-cluster-1
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: postgresql
+    name: pg-cluster-1
+  local:
+    path: /opt/local-path-provisioner/pvc-f33a12f4-232d-41f0-be23-69f1d8ed203b_postgresql_pg-cluster-1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pg-cluster-1
+  namespace: postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: recovery-pg-cluster-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-pg-cluster-2
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: postgresql
+    name: pg-cluster-2
+  local:
+    path: /opt/local-path-provisioner/pvc-95ea4996-33a1-43f4-a059-483f03c83f45_postgresql_pg-cluster-2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pg-cluster-2
+  namespace: postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: recovery-pg-cluster-2
+---
+# =============================================================================
+# IMMICH
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-immich-upload-data
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: immich
+    name: immich-upload-data
+  local:
+    path: /opt/local-path-provisioner/pvc-dbf61c4c-988a-41a1-b30d-d9e63b4ee216_immich_immich-upload-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-upload-data
+  namespace: immich
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: recovery-immich-upload-data
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-immich-ml-cache
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: immich
+    name: immich-ml-cache
+  local:
+    path: /opt/local-path-provisioner/pvc-6161b562-3180-4828-b5b9-cad37e4d0e4d_immich_immich-ml-cache
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-ml-cache
+  namespace: immich
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: recovery-immich-ml-cache
+---
+# =============================================================================
+# NEXTCLOUD (on-disk name has -new suffix)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-nextcloud
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: nextcloud
+    name: nextcloud-nextcloud
+  local:
+    path: /opt/local-path-provisioner/pvc-0dd7e9a9-1f5a-4bca-af36-7f6b70e57645_nextcloud_nextcloud-nextcloud-new
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-nextcloud
+  namespace: nextcloud
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: recovery-nextcloud
+---
+# =============================================================================
+# OPEN WEBUI (on-disk name has -new suffix)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-open-webui-data
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: open-webui
+    name: open-webui-data
+  local:
+    path: /opt/local-path-provisioner/pvc-fb0a9154-2302-47f0-8dd6-ceca8c1ad4a1_open-webui_open-webui-data-new
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui-data
+  namespace: open-webui
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: recovery-open-webui-data
+---
+# =============================================================================
+# SUPERSET
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-superset-data
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: superset
+    name: superset-data
+  local:
+    path: /opt/local-path-provisioner/pvc-03657ab6-5428-46c2-a5d6-3ea972a7d01b_superset_superset-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: superset-data
+  namespace: superset
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: recovery-superset-data
+---
+# =============================================================================
+# CONTAINER REGISTRY (on-disk name has -new suffix)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-container-registry-data
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: container-registry
+    name: container-registry-data
+  local:
+    path: /opt/local-path-provisioner/pvc-a494f713-b97d-48df-87b4-00a64da4b18c_container-registry_container-registry-data-new
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: container-registry-data
+  namespace: container-registry
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi
+  volumeName: recovery-container-registry-data
+---
+# =============================================================================
+# MONITORING - Grafana (on-disk name has -new suffix)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-grafana-storage
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: monitoring
+    name: grafana-storage
+  local:
+    path: /opt/local-path-provisioner/pvc-50ada6ff-8e6e-4a8c-923d-2d5fb0c987ce_monitoring_grafana-storage-new
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-grafana-storage
+---
+# =============================================================================
+# MONITORING - Prometheus (2 instances)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-prometheus-k8s-0
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: monitoring
+    name: prometheus-k8s-db-prometheus-k8s-0
+  local:
+    path: /opt/local-path-provisioner/pvc-d8950f57-5d15-4b99-991a-e8d7fae7f0ff_monitoring_prometheus-k8s-db-prometheus-k8s-0
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-k8s-db-prometheus-k8s-0
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: recovery-prometheus-k8s-0
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-prometheus-k8s-1
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: monitoring
+    name: prometheus-k8s-db-prometheus-k8s-1
+  local:
+    path: /opt/local-path-provisioner/pvc-0e85f64a-dd57-453f-a0c2-06724fd535df_monitoring_prometheus-k8s-db-prometheus-k8s-1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-k8s-db-prometheus-k8s-1
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: recovery-prometheus-k8s-1
+---
+# =============================================================================
+# MONITORING - Alertmanager (2 instances)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-alertmanager-0
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: monitoring
+    name: alertmanager-main-db-alertmanager-main-0
+  local:
+    path: /opt/local-path-provisioner/pvc-9b420411-c417-404c-9955-104ab431b33c_monitoring_alertmanager-main-db-alertmanager-main-0
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-main-db-alertmanager-main-0
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-alertmanager-0
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-alertmanager-1
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: monitoring
+    name: alertmanager-main-db-alertmanager-main-1
+  local:
+    path: /opt/local-path-provisioner/pvc-25d96b37-8cc8-4c4f-a915-bf5d7bcbbeb8_monitoring_alertmanager-main-db-alertmanager-main-1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-main-db-alertmanager-main-1
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-alertmanager-1
+---
+# =============================================================================
+# RABBITMQ (3 replicas)
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-rabbitmq-0
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: rabbitmq
+    name: persistence-rabbitmq-cluster-server-0
+  local:
+    path: /opt/local-path-provisioner/pvc-69f128d8-3e07-4471-a30a-ee905698f24f_rabbitmq_persistence-rabbitmq-cluster-server-0
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistence-rabbitmq-cluster-server-0
+  namespace: rabbitmq
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-rabbitmq-0
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-rabbitmq-1
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: rabbitmq
+    name: persistence-rabbitmq-cluster-server-1
+  local:
+    path: /opt/local-path-provisioner/pvc-43a5a1a3-de6b-4a5e-9aed-14a6d18e081b_rabbitmq_persistence-rabbitmq-cluster-server-1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistence-rabbitmq-cluster-server-1
+  namespace: rabbitmq
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-rabbitmq-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-rabbitmq-2
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: rabbitmq
+    name: persistence-rabbitmq-cluster-server-2
+  local:
+    path: /opt/local-path-provisioner/pvc-5610541f-e693-4782-9675-f9932e3539ae_rabbitmq_persistence-rabbitmq-cluster-server-2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistence-rabbitmq-cluster-server-2
+  namespace: rabbitmq
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-rabbitmq-2
+---
+# =============================================================================
+# VALKEY
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: recovery-valkey
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  claimRef:
+    namespace: valkey
+    name: valkey
+  local:
+    path: /opt/local-path-provisioner/pvc-029b848a-651b-455b-b021-a6826b0f2f76_valkey_valkey
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - macstation-ubuntu-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: valkey
+  namespace: valkey
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: recovery-valkey
