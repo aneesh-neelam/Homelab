@@ -1,0 +1,54 @@
+alloy:
+  configMap:
+    content: |-
+      // Scrape metrics from the existing Prometheus instances
+      prometheus.scrape "prometheus" {
+        targets = [
+          {"__address__" = "prometheus-k8s.monitoring.svc.cluster.local:9090"},
+        ]
+        metrics_path = "/federate"
+        params = {
+          "match[]" = ["{__name__=~\".+\"}"],
+        }
+        scrape_interval = "60s"
+        forward_to = [prometheus.remote_write.grafanacloud.receiver]
+      }
+
+      // Remote write to Grafana Cloud
+      prometheus.remote_write "grafanacloud" {
+        endpoint {
+          url = "https://prometheus-prod-43-prod-ap-south-1.grafana.net/api/prom/push"
+
+          basic_auth {
+            username = sys.env("GRAFANA_CLOUD_USERNAME")
+            password = sys.env("GRAFANA_CLOUD_PASSWORD")
+          }
+        }
+      }
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  extraEnv:
+    - name: GRAFANA_CLOUD_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: grafana-cloud-credentials
+          key: username
+    - name: GRAFANA_CLOUD_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: grafana-cloud-credentials
+          key: password
+
+serviceAccount:
+  create: true
+
+controller:
+  type: deployment
+  replicas: 1
