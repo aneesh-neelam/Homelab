@@ -1,6 +1,6 @@
 # Open WebUI
 
-Open WebUI deployed via Kubernetes manifests for running LLMs locally. Connects to Ollama running on the host machine, with PostgreSQL for persistence, pgvector for embeddings, and Valkey for caching/WebSocket.
+Open WebUI deployed via Kubernetes manifests for running LLMs locally. Connects to LM Studio running on the host machine via its OpenAI-compatible API, with PostgreSQL for persistence, pgvector for embeddings, and Valkey for caching/WebSocket.
 
 ## Prerequisites
 
@@ -8,7 +8,11 @@ Open WebUI deployed via Kubernetes manifests for running LLMs locally. Connects 
 - Valkey running in `valkey` namespace
 - kubernetes-replicator running in `kube-system` namespace
 - Prometheus operator running in `monitoring` namespace
-- Ollama running on the host machine (192.168.213.1:11434)
+- LM Studio running on the host machine at `192.168.213.1:1234` with:
+  - Local server started (Developer tab → Start Server)
+  - "Serve on Local Network" enabled so the VM can reach it
+  - At least one model loaded
+  - API key configured
 
 ## Deployment
 
@@ -66,13 +70,22 @@ kubectl delete job pg-create-databases -n postgresql --ignore-not-found
 kubectl apply -f ../PostgreSQL/create-databases-job.yaml
 ```
 
-### 2. Apply Prometheus RBAC
+### 2. Create the LM Studio API key secret
+
+Get the API key from LM Studio (Developer tab → Server settings → API keys), then:
+
+```bash
+kubectl -n open-webui create secret generic lm-studio-credentials \
+  --from-literal=api-key=<LM Studio API Key>
+```
+
+### 3. Apply Prometheus RBAC
 
 ```bash
 kubectl apply -f open-webui-prometheus-rbac.yaml
 ```
 
-### 3. Deploy Open WebUI
+### 4. Deploy Open WebUI
 
 ```bash
 kubectl apply -f open-webui.yaml
@@ -96,4 +109,4 @@ kubectl apply -f open-webui.yaml
 |------------|---------|-----------|
 | PostgreSQL | pg-cluster-rw.postgresql.svc.cluster.local:5432 | postgresql |
 | Valkey | valkey.valkey.svc.cluster.local:6379 | valkey |
-| Ollama | 192.168.213.1:11434 | Host machine |
+| LM Studio | 192.168.213.1:1234/v1 | Host machine |

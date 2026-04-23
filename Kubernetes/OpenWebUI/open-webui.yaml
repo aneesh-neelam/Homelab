@@ -46,8 +46,17 @@ spec:
                 secretKeyRef:
                   name: openwebui-db-credentials
                   key: password
-            - name: OLLAMA_BASE_URL
-              value: "http://192.168.213.1:11434"
+            - name: ENABLE_OLLAMA_API
+              value: "false"
+            - name: ENABLE_OPENAI_API
+              value: "true"
+            - name: OPENAI_API_BASE_URL
+              value: "http://192.168.213.1:1234/v1"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lm-studio-credentials
+                  key: api-key
             - name: DATABASE_URL
               value: "postgresql://openwebui:$(OPENWEBUI_DB_PASSWORD)@pg-cluster-rw.postgresql.svc.cluster.local:5432/openwebui"
             - name: VECTOR_DB
