@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-cluster-backup
+  namespace: postgresql
+spec:
+  schedule: "30 5 * * *"
+  timeZone: "Asia/Kolkata"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          containers:
+            - name: pg-backup
+              image: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+              command: ["sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                  BACKUP_DIR=/backup
+                  RETENTION_DAYS=14
+
+                  if ! command -v curl >/dev/null 2>&1; then
+                    DEBIAN_FRONTEND=noninteractive apt-get update -qq
+                    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq curl >/dev/null
+                  fi
+
+                  curl -fsS -m 10 "${SENTRY_CRONS_URL}?status=in_progress" || true
+                  trap 'curl -fsS -m 10 "${SENTRY_CRONS_URL}?status=error" || true' EXIT
+
+                  echo "Backing up globals..."
+                  pg_dumpall -h pg-cluster-rw -U postgres --globals-only > "${BACKUP_DIR}/globals-${TIMESTAMP}.sql"
+
+                  DBS=$(psql -h pg-cluster-rw -U postgres -tAc "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'postgres';")
+                  for db in $DBS; do
+                    echo "Backing up ${db}..."
+                    pg_dump -h pg-cluster-rw -U postgres -d "$db" -Fc -f "${BACKUP_DIR}/${db}-${TIMESTAMP}.dump"
+                  done
+
+                  echo "Pruning backups older than ${RETENTION_DAYS} days..."
+                  find "${BACKUP_DIR}" -type f \( -name "*.sql" -o -name "*.dump" \) -mtime +${RETENTION_DAYS} -delete
+
+                  trap - EXIT
+                  curl -fsS -m 10 "${SENTRY_CRONS_URL}?status=ok" || true
+
+                  echo "Done."
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-cluster-superuser
+                      key: password
+                - name: SENTRY_CRONS_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-cluster-backup-sentry
+                      key: SENTRY_CRONS_URL
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "500m"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backup
+          volumes:
+            - name: backup-storage
+              hostPath:
+                path: /mnt/External/Backup/K8s/PostgreSQL
+                type: Directory
