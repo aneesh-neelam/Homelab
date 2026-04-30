@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily k3s kine SQLite snapshot
+
+[Timer]
+OnCalendar=*-*-* 05:00:00 Asia/Kolkata
+Persistent=true
+RandomizedDelaySec=60
+Unit=k3s-kine-backup.service
+
+[Install]
+WantedBy=timers.target

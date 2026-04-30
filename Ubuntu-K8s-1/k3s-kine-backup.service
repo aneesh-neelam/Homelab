@@ -1,0 +1,11 @@
+[Unit]
+Description=k3s kine SQLite snapshot to /mnt/External/Backup/K8s/k3s-kine
+After=k3s.service mnt-External.mount
+Requires=mnt-External.mount
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/k3s-kine-backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
