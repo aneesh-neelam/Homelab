@@ -394,8 +394,8 @@ spec:
       cpu: 100m
       memory: 384Mi
     limits:
-      cpu: 200m
-      memory: 384Mi
+      cpu: "1"
+      memory: 1Gi
   retention: 30d
   retentionSize: 5020MB
   ruleNamespaceSelector: {}
