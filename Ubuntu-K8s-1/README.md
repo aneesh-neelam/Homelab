@@ -77,6 +77,45 @@ Scale the CoreDNS HPA minimum replicas to 3:
 kubectl -n kube-system patch hpa ck-dns-coredns --patch '{"spec":{"minReplicas":3}}'
 ```
 
+## DNS / Tailscale
+
+Tailscale MagicDNS controls `/etc/resolv.conf` on this machine but provides no upstream resolvers when the Tailscale admin console sends no global nameservers. Without the proper systemd-resolved integration, host DNS breaks on every `tailscaled` restart.
+
+The fix has two parts:
+1. Symlink `/etc/resolv.conf` to systemd-resolved's stub so Tailscale switches to its `resolved` DNS manager instead of writing the file directly.
+2. Set `FallbackDNS` so external DNS works even if the admin console pushes no resolvers.
+
+### Deployment
+
+Install the FallbackDNS drop-in:
+
+```bash
+sudo mkdir -p /etc/systemd/resolved.conf.d
+sudo cp 99-fallback.conf /etc/systemd/resolved.conf.d/
+```
+
+Restore the `resolv.conf` symlink (Tailscale may have replaced it with a plain file):
+
+```bash
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+```
+
+Restart both services:
+
+```bash
+sudo systemctl restart systemd-resolved
+sudo systemctl restart tailscaled
+```
+
+Verify:
+
+```bash
+ls -la /etc/resolv.conf                                     # symlink to stub-resolv.conf
+resolvectl status | grep -E "resolv.conf mode|Fallback"     # mode: stub, FallbackDNS present
+getent hosts ports.ubuntu.com                               # external DNS works
+getent hosts macstation-ubuntu-2.tail3b06f0.ts.net          # MagicDNS works
+```
+
 ## Usage
 
 Services that use these mounts:
