@@ -7,8 +7,8 @@ spec:
   schedule: "30 5 * * *"
   timeZone: "Asia/Kolkata"
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       backoffLimit: 2
