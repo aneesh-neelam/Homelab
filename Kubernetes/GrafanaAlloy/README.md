@@ -57,6 +57,7 @@ helm upgrade alloy grafana/alloy -n grafana-alloy -f values.yaml
 
 - The Alloy config uses `sys.env()` to read credentials from environment variables injected from the `grafana-cloud-credentials` secret.
 - Metrics are federated from local Prometheus via `/federate` with a `{__name__=~".+"}` matcher (scrapes all series).
+- A `prometheus.relabel` stage drops histogram buckets, control-plane/monitoring internals, and low-value cAdvisor/kube-state-metrics series before remote_write, to stay under the Grafana Cloud free-tier active series limit (15000). All series remain available in the local Prometheus.
 - Scrape interval is set to `60s` to reduce Grafana Cloud ingestion volume.
 
 ## External Dependencies

@@ -11,6 +11,40 @@ alloy:
           "match[]" = ["{__name__=~\".+\"}"],
         }
         scrape_interval = "60s"
+        forward_to = [prometheus.relabel.reduce_cardinality.receiver]
+      }
+
+      // Drop high-cardinality series to stay under the Grafana Cloud free-tier
+      // active series limit (15000). Local Prometheus retains everything.
+      prometheus.relabel "reduce_cardinality" {
+        // Histogram buckets (~37k series, mostly control-plane internals)
+        rule {
+          source_labels = ["__name__"]
+          regex         = ".*_bucket"
+          action        = "drop"
+        }
+
+        // Control-plane, monitoring-stack and runtime internals
+        rule {
+          source_labels = ["__name__"]
+          regex         = "(apiserver|etcd|workqueue|scheduler|kubelet|storage_operation|rest_client|kubeproxy|apiextensions|authentication|authorization|admission|aggregator|flowcontrol|kube_apiserver|grafana|prometheus|alertmanager|go|process|erlang|prober|watch|leader_election|kubernetes_build|kubernetes_feature|registered_metric|hidden_metric|disabled_metric|cardinality_enforcement|net_conntrack)_.*"
+          action        = "drop"
+        }
+
+        // cAdvisor detail beyond core CPU/memory/network usage
+        rule {
+          source_labels = ["__name__"]
+          regex         = "container_(memory_failures_total|blkio_.*|last_seen|memory_failcnt|memory_cache|memory_swap|memory_mapped_file|memory_max_usage_bytes|spec_.*|start_time_seconds|file_descriptors|sockets|threads|threads_max|processes|ulimits_soft|tasks_state|oom_events_total|network_(receive|transmit)_(errors|packets|packets_dropped)_total|cpu_(cfs_.*|load_.*|system_seconds_total|user_seconds_total))"
+          action        = "drop"
+        }
+
+        // kube-state-metrics detail beyond pod/workload status and resources
+        rule {
+          source_labels = ["__name__"]
+          regex         = "kube_(pod_(status_reason|status_qos_class|status_scheduled|tolerations|owner|ips|created|restart_policy|completion_mode|service_account|spec_.*|init_.*)|.*_(annotations|labels)|replicaset_.*|endpoint_.*|lease_.*|secret_.*|configmap_.*|ingress_.*|networkpolicy_.*|poddisruptionbudget_.*|resourcequota.*|limitrange.*|mutatingwebhookconfiguration_.*|validatingwebhookconfiguration_.*|storageclass_.*|volumeattachment_.*)"
+          action        = "drop"
+        }
+
         forward_to = [prometheus.remote_write.grafanacloud.receiver]
       }
 

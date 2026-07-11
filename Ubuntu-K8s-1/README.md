@@ -77,6 +77,26 @@ Scale the CoreDNS HPA minimum replicas to 3:
 kubectl -n kube-system patch hpa ck-dns-coredns --patch '{"spec":{"minReplicas":3}}'
 ```
 
+## Kubelet / CoreDNS DNS
+
+By default k3s points CoreDNS and pod DNS at the node's `/etc/resolv.conf` (via systemd-resolved's uplink list), which on this VM includes the flaky VMware NAT resolver, a link-local IPv6 nameserver that is meaningless inside pod network namespaces, and `localdomain`/`ts.net` search domains that leak into every pod. This caused intermittent in-cluster DNS failures ("Name or service not known") that never affected the host. Editing the CoreDNS manifest under `/var/lib/rancher/k3s/server/manifests/` does not stick — k3s rewrites bundled addon manifests on every restart.
+
+The durable fix is to give kubelet a dedicated, clean resolv.conf:
+
+| File | Destination |
+|------|-------------|
+| `k3s-resolv.conf` | `/etc/rancher/k3s/resolv.conf` |
+| `k3s-config.yaml` | `/etc/rancher/k3s/config.yaml` |
+
+```bash
+sudo cp k3s-resolv.conf /etc/rancher/k3s/resolv.conf
+sudo cp k3s-config.yaml /etc/rancher/k3s/config.yaml
+sudo systemctl restart k3s
+kubectl -n kube-system rollout restart deploy/coredns
+```
+
+Pods created before the change keep their old search domains until recreated. Verify with a fresh pod: `/etc/resolv.conf` should list only `cluster.local` search domains, and external lookups should succeed consistently.
+
 ## DNS / Tailscale
 
 Tailscale MagicDNS controls `/etc/resolv.conf` on this machine but provides no upstream resolvers when the Tailscale admin console sends no global nameservers. Without the proper systemd-resolved integration, host DNS breaks on every `tailscaled` restart.
